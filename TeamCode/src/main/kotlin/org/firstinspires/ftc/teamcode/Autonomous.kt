@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 
-@Autonomous(name = "Kotlin Auto (Blue Left)", group = "Kt")
+@Autonomous(name = "Auto (Blue Left)", group = "Kt")
 class AutoBlueLeft: AutoSuper(AutoSuper.Alliance.BLUE, AutoSuper.AllianceSide.LEFT)
-@Autonomous(name = "Kotlin Auto (Blue Right)", group = "Kt")
+@Autonomous(name = "Auto (Blue Right)", group = "Kt")
 class AutoBlueRight: AutoSuper(AutoSuper.Alliance.BLUE, AutoSuper.AllianceSide.RIGHT)
-@Autonomous(name = "Kotlin Auto (Red Left)", group = "Kt")
+@Autonomous(name = "Auto (Red Left)", group = "Kt")
 class AutoRedLeft: AutoSuper(AutoSuper.Alliance.RED, AutoSuper.AllianceSide.LEFT)
-@Autonomous(name = "Kotlin Auto (Red Right)", group = "Kt")
+@Autonomous(name = "Auto (Red Right)", group = "Kt")
 class AutoRedRight: AutoSuper(AutoSuper.Alliance.RED, AutoSuper.AllianceSide.RIGHT)
 
 //@Disabled
@@ -23,11 +23,7 @@ open class AutoSuper(val alliance: Alliance, val side: AllianceSide) : OpMode() 
         RIGHT
     }
 
-    private lateinit var shared: BotShared
-
-    override fun init() {
-        shared = BotShared(this)
-    }
+    override fun init() { }
 
     override fun loop() { }
 
