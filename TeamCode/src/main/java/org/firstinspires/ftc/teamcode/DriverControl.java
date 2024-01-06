@@ -15,11 +15,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Driver Control")
+@TeleOp(name="Driver Control (android)")
 public class DriverControl extends OpMode {
     // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private DcMotorEx leftDrive = null;
+    private DcMotorEx rightDrive = null;
 
     private Servo frontPlow = null;
 
@@ -53,6 +53,7 @@ public class DriverControl extends OpMode {
     @Override
     public void start() {
         imu.resetYaw();
+        frontPlow.setPosition(0.175);
     }
 
     @Override
@@ -78,10 +79,10 @@ public class DriverControl extends OpMode {
         // rightPower = -gamepad1.right_stick_y ;
 
         if (frontplow) {
-            frontPlow.setPosition(.57);
+            frontPlow.setPosition(0.51);
         }
         if (frontplownegative) {
-            frontPlow.setPosition(.14);
+            frontPlow.setPosition(0.175);
         }
         // Send calculated power to wheels
         leftDrive.setPower(leftPower);
@@ -91,6 +92,7 @@ public class DriverControl extends OpMode {
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        telemetry.addData("Plow Servo Position", "(%.4f)", frontPlow.getPosition());
     }
 }
 
