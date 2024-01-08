@@ -71,8 +71,28 @@ public class DriverControl extends OpMode {
         double turn = gamepad1.right_stick_x;
         boolean frontplow = gamepad1.dpad_up;
         boolean frontplownegative = gamepad1.dpad_down;
-        leftPower = Range.clip(drive + turn, -1.0, 1.0);
-        rightPower = Range.clip(drive - turn, -1.0, 1.0);
+        boolean NormalSpeed = gamepad1.right_trigger <= 0.5;
+        boolean FastBoi = gamepad1.right_trigger >= 0.5;
+
+        if (NormalSpeed) {
+            leftPower = Range.clip(drive + turn, -0.4, 0.4);
+            rightPower = Range.clip(drive - turn, -0.4, 0.4);
+            leftDrive.setPower(leftPower);
+            rightDrive.setPower(rightPower);
+            leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        }
+        if (FastBoi) {
+            leftPower = Range.clip(drive + turn, -1.0, 1.0);
+            rightPower = Range.clip(drive - turn, -1.0, 1.0);
+            leftDrive.setPower(leftPower);
+            rightDrive.setPower(rightPower);
+            leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        }
+
         // Tank Mode uses one stick to control each wheel.
         // - This requires no math, but it is hard to drive forward slowly and keep straight.
         // leftPower  = -gamepad1.left_stick_y ;
@@ -85,13 +105,12 @@ public class DriverControl extends OpMode {
             frontPlow.setPosition(0.175);
         }
         // Send calculated power to wheels
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+
         leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Show the elapsed game time and wheel power.
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+
         telemetry.addData("Plow Servo Position", "(%.4f)", frontPlow.getPosition());
     }
 }
