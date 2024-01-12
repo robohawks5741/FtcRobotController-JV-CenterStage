@@ -10,16 +10,19 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-//
+
 @TeleOp(name="Driver Control (android)")
 public class DriverControl extends OpMode {
     // Declare OpMode members.
     private DcMotorEx leftDrive = null;
     private DcMotorEx rightDrive = null;
+
+    private DcMotorEx hangerDrive = null;
 
     private Servo frontPlow = null;
 
@@ -32,6 +35,7 @@ public class DriverControl extends OpMode {
         // step (using the FTC Robot Controller app on the phone).
         leftDrive = hardwareMap.get(DcMotorEx.class, "left");
         rightDrive = hardwareMap.get(DcMotorEx.class, "right");
+        hangerDrive = hardwareMap.get(DcMotorEx.class, "hanger");
         frontPlow = hardwareMap.get(Servo.class, "plowFront");
         imu = hardwareMap.get(IMU.class, "imu");
 
@@ -41,6 +45,14 @@ public class DriverControl extends OpMode {
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
+
+        // causes the motors to actively stop instead of coasting
+        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hangerDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        //Sets the direction of the hanger drive motor, can be changed if necessary
+        hangerDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -73,14 +85,20 @@ public class DriverControl extends OpMode {
         boolean frontplownegative = gamepad1.dpad_down;
         boolean NormalSpeed = gamepad1.right_trigger <= 0.5;
         boolean FastBoi = gamepad1.right_trigger >= 0.5;
+        boolean hangerRaise = gamepad1.right_bumper;
+        boolean hangerContract = gamepad1.left_bumper;
+        double hangerForce = 0.25;
+        if (hangerRaise) {
+            hangerDrive.setPower(hangerForce);
+        } else if (hangerContract) {
+            hangerDrive.setPower(hangerForce * (-1));
+        }
 
         if (NormalSpeed) {
             leftPower = Range.clip(drive + turn, -0.4, 0.4);
             rightPower = Range.clip(drive - turn, -0.4, 0.4);
             leftDrive.setPower(leftPower);
             rightDrive.setPower(rightPower);
-            leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         }
         if (FastBoi) {
@@ -88,8 +106,6 @@ public class DriverControl extends OpMode {
             rightPower = Range.clip(drive - turn, -1.0, 1.0);
             leftDrive.setPower(leftPower);
             rightDrive.setPower(rightPower);
-            leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         }
 
