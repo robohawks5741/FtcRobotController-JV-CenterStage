@@ -28,6 +28,8 @@ public class DriverControl extends OpMode {
 
     private IMU imu = null;
 
+    int hangerLocation;
+
     @Override
     public void init() {
         // Initialize the hardware variables. Note that the strings used here as parameters
@@ -45,7 +47,11 @@ public class DriverControl extends OpMode {
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        hangerDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hangerDrive.setTargetPosition(300);
+        hangerDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+        hangerDrive.setVelocity(1500);
         // causes the motors to actively stop instead of coasting
         rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -60,6 +66,8 @@ public class DriverControl extends OpMode {
         LogoFacingDirection logo = LogoFacingDirection.RIGHT;
         UsbFacingDirection usb = UsbFacingDirection.FORWARD;
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(logo, usb)));
+
+
     }
 
     @Override
@@ -87,12 +95,15 @@ public class DriverControl extends OpMode {
         boolean FastBoi = gamepad1.right_trigger >= 0.5;
         boolean hangerRaise = gamepad1.right_bumper;
         boolean hangerContract = gamepad1.left_bumper;
-        double hangerForce = 0.25;
+
+        //Processes bumper input to produce change in desired angle
         if (hangerRaise) {
-            hangerDrive.setPower(hangerForce);
-        } else if (hangerContract) {
-            hangerDrive.setPower(hangerForce * (-1));
+            hangerLocation = (hangerLocation + 4);
         }
+        if (hangerContract) {
+            hangerLocation = (hangerLocation - 4);
+        }
+
 
         if (NormalSpeed) {
             leftPower = Range.clip(drive + turn, -0.4, 0.4);
@@ -128,6 +139,8 @@ public class DriverControl extends OpMode {
         // Show the elapsed game time and wheel power.
 
         telemetry.addData("Plow Servo Position", "(%.4f)", frontPlow.getPosition());
+        hangerDrive.setTargetPosition(hangerLocation);
+        telemetry.addData("Hanger Location", hangerLocation);
     }
 }
 
