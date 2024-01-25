@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.*;
 
+import static org.firstinspires.ftc.teamcode.MacrosKt.clamp;
+import static org.firstinspires.ftc.teamcode.MacrosKt.stickCurve;
+
 import android.icu.text.Transliterator;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -24,9 +27,9 @@ public class DriverControl extends OpMode {
 
     private DcMotorEx hangerDrive = null;
 
-    private Servo frontPlow = null;
-
     private IMU imu = null;
+
+    private PlowMatic plow;
 
     int hangerLocation;
 
@@ -38,9 +41,10 @@ public class DriverControl extends OpMode {
         leftDrive = hardwareMap.get(DcMotorEx.class, "left");
         rightDrive = hardwareMap.get(DcMotorEx.class, "right");
         hangerDrive = hardwareMap.get(DcMotorEx.class, "hanger");
-        frontPlow = hardwareMap.get(Servo.class, "plowFront");
         imu = hardwareMap.get(IMU.class, "imu");
+        plow = new PlowMatic(hardwareMap.get(Servo.class, "plowFront"));
 
+        plow.raise();
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -66,14 +70,12 @@ public class DriverControl extends OpMode {
         LogoFacingDirection logo = LogoFacingDirection.RIGHT;
         UsbFacingDirection usb = UsbFacingDirection.FORWARD;
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(logo, usb)));
-
-
     }
 
     @Override
     public void start() {
         imu.resetYaw();
-        frontPlow.setPosition(0.175);
+        plow.raise();
     }
 
     @Override
@@ -87,50 +89,44 @@ public class DriverControl extends OpMode {
 //        double theta;
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
-        double drive = -gamepad1.left_stick_y;
-        double turn = gamepad1.right_stick_x;
-        boolean frontplow = gamepad1.dpad_up;
-        boolean frontplownegative = gamepad1.dpad_down;
-        boolean NormalSpeed = gamepad1.right_trigger <= 0.5;
-        boolean FastBoi = gamepad1.right_trigger >= 0.5;
+
+        double drive = stickCurve(-gamepad1.left_stick_y);
+//        double turn = clamp(gamepad1.right_stick_x + gamepad1.left_stick_x, -1.0, 1.0);
+        double turn = stickCurve(gamepad1.right_stick_x);
+
+        boolean gottaGoFast = gamepad1.right_trigger >= 0.5;
+
         boolean hangerRaise = gamepad1.right_bumper;
         boolean hangerContract = gamepad1.left_bumper;
 
-        //Processes bumper input to produce change in desired angle
+        // Process bumper input to change the desired angle
         if (hangerRaise) {
             hangerLocation = (hangerLocation + 4);
-        }
-        if (hangerContract) {
+        } else if (hangerContract) {
             hangerLocation = (hangerLocation - 4);
         }
 
+        double leftPowerPre = clamp(drive + turn, -1.0, 1.0);
+        double rightPowerPre = clamp(drive - turn, -1.0, 1.0);
 
-        if (NormalSpeed) {
-            leftPower = Range.clip(drive + turn, -0.4, 0.4);
-            rightPower = Range.clip(drive - turn, -0.4, 0.4);
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        if (gottaGoFast) {
+            leftPower = leftPowerPre;
+            rightPower = rightPowerPre;
+        } else {
+            leftPower = Range.scale(leftPowerPre, -1.0, 1.0, -0.4, 0.4);
+            rightPower = Range.scale(rightPowerPre, -1.0, 1.0, -0.4, 0.4);
         }
-        if (FastBoi) {
-            leftPower = Range.clip(drive + turn, -1.0, 1.0);
-            rightPower = Range.clip(drive - turn, -1.0, 1.0);
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        }
+        leftDrive.setPower(leftPower);
+        rightDrive.setPower(rightPower);
+        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
 
         // Tank Mode uses one stick to control each wheel.
         // - This requires no math, but it is hard to drive forward slowly and keep straight.
         // leftPower  = -gamepad1.left_stick_y ;
         // rightPower = -gamepad1.right_stick_y ;
 
-        if (frontplow) {
-            frontPlow.setPosition(0.51);
-        }
-        if (frontplownegative) {
-            frontPlow.setPosition(0.175);
-        }
+        if (gamepad1.dpad_up) plow.raise();
+        else if (gamepad1.dpad_down) plow.lower();
         // Send calculated power to wheels
 
         leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -138,7 +134,7 @@ public class DriverControl extends OpMode {
 
         // Show the elapsed game time and wheel power.
 
-        telemetry.addData("Plow Servo Position", "(%.4f)", frontPlow.getPosition());
+        telemetry.addData("Plow Servo Position", "(%.4f)", plow.getPosition());
         hangerDrive.setTargetPosition(hangerLocation);
         telemetry.addData("Hanger Location", hangerLocation);
     }
