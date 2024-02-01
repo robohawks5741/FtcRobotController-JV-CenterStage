@@ -114,7 +114,7 @@ public class DriverControl extends OpMode {
             rightPower = rightPowerPre;
         } else {
             leftPower = Range.scale(leftPowerPre, -1.0, 1.0, -0.4, 0.4);
-            rightPower = Range.scale(rightPowerPre, -1.0, 1.0, -0.4, 0.4);
+            rightPower = Range.scale(rightPowerPre, -0.9, 0.9, -0.4, 0.4);
         }
         leftDrive.setPower(leftPower);
         rightDrive.setPower(rightPower);
