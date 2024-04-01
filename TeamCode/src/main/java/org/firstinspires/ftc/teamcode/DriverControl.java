@@ -107,14 +107,14 @@ public class DriverControl extends OpMode {
         }
 
         double leftPowerPre = clamp(drive + turn, -1.0, 1.0);
-        double rightPowerPre = clamp(drive - turn, -1.0, 1.0);
+        double rightPowerPre = clamp(drive - turn, -0.9, 0.9);
 
         if (gottaGoFast) {
             leftPower = leftPowerPre;
             rightPower = rightPowerPre;
         } else {
             leftPower = Range.scale(leftPowerPre, -1.0, 1.0, -0.4, 0.4);
-            rightPower = Range.scale(rightPowerPre, -0.9, 0.9, -0.4, 0.4);
+            rightPower = Range.scale(rightPowerPre, -1.0, 1.0, -0.4, 0.4);
         }
         leftDrive.setPower(leftPower);
         rightDrive.setPower(rightPower);
